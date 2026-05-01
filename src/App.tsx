@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DecodeProvider } from "@/state/DecodeContext";
+import { ThemeProvider } from "@/state/ThemeContext";
 import { AppHeader } from "@/components/AppHeader";
 import { LiveTicker } from "@/components/LiveTicker";
 import { ContextSidebar } from "@/components/ContextSidebar";
@@ -21,6 +22,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ThemeProvider>
         <DecodeProvider>
           <div className="min-h-screen flex flex-col">
             <AppHeader/>
@@ -39,6 +41,7 @@ const App = () => (
             <LiveTicker/>
           </div>
         </DecodeProvider>
+        </ThemeProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

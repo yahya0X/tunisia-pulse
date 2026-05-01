@@ -2,6 +2,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { Radar, Brain, ScrollText, ShieldAlert, Activity } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDecode } from "@/state/DecodeContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const nav = [
   { to: "/", label: "Tactical Radar", icon: Radar },
@@ -67,6 +68,7 @@ export function AppHeader() {
               <span className="tabular-nums">{alerts.length} context alert{alerts.length > 1 ? "s" : ""}</span>
             </div>
           )}
+          <ThemeToggle/>
         </div>
       </div>
     </header>
