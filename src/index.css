@@ -88,7 +88,7 @@
 
     /* Map (dark) */
     --map-land: 217 33% 17%;               /* slate-800 */
-    --map-stroke: 187 92% 53% / 0.4;
+    --map-stroke: 222 47% 4%;              /* deep obsidian borders between regions */
     --map-bg-from: 222 47% 5%;
     --map-bg-to: 222 47% 3%;
   }
