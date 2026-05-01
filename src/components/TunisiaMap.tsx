@@ -78,9 +78,9 @@ export function TunisiaMap() {
           We place them via percentage based on the projection bbox: lng 7.5–11.6, lat 30.2–37.6. */}
       <div className="absolute inset-0 pointer-events-none">
         {visibleTrends.map(t => {
-          const gov = trends && (t as Trend);
-          const lat = useDecodeGov(t.governorateId)?.lat ?? 0;
-          const lng = useDecodeGov(t.governorateId)?.lng ?? 0;
+          const g = lookupGov(t.governorateId);
+          const lat = g?.lat ?? 0;
+          const lng = g?.lng ?? 0;
           // Match the projection bounds (geoMercator center [9.5, 34.4], scale 2800, 800x700).
           // We compute approximate pixel positions inline to align with the SVG.
           const pos = projectApprox(lng, lat);
@@ -127,9 +127,8 @@ export function TunisiaMap() {
   );
 }
 
-// Tiny helper hook for governorate lookup
 import { GOVERNORATES } from "@/ingestion/mockData";
-function useDecodeGov(id: string) {
+function lookupGov(id: string) {
   return GOVERNORATES.find(g => g.id === id);
 }
 
