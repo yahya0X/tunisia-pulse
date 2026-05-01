@@ -1,4 +1,4 @@
-import { TunisiaMap } from "@/components/TunisiaMap";
+import { GlobalMap } from "@/components/GlobalMap";
 import { EmotionFilter } from "@/components/EmotionFilter";
 import { useDecode } from "@/state/DecodeContext";
 import { motion } from "framer-motion";
@@ -28,7 +28,7 @@ export default function Radar() {
         </div>
 
         <div className="h-[640px]">
-          <TunisiaMap/>
+          <GlobalMap/>
         </div>
       </div>
 
