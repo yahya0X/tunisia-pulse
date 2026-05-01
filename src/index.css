@@ -85,6 +85,94 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 33% 18%;
     --sidebar-ring: 187 92% 53%;
+
+    /* Map (dark) */
+    --map-land: 222 35% 12%;
+    --map-stroke: 187 92% 53%;
+    --map-bg-from: 222 47% 5%;
+    --map-bg-to: 222 47% 3%;
+  }
+
+  /* ============= LIGHT MODE — Comforting & Eye-Catching ============= */
+  .light {
+    /* Soft warm off-white, never harsh pure white */
+    --background: 210 40% 99%;            /* #FDFDFD-ish */
+    --foreground: 215 28% 17%;            /* slate-800 */
+
+    --surface: 0 0% 100%;                 /* crisp white cards */
+    --surface-elevated: 210 40% 98%;      /* slate-50 */
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 28% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 17%;
+
+    /* Crisp Indigo — primary action / active states */
+    --primary: 239 84% 60%;               /* indigo-600 */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 234 89% 74%;          /* indigo-400 */
+
+    /* Soft Coral / Rose — Hot / Tension */
+    --magma: 351 83% 61%;                 /* rose-500 */
+    --magma-foreground: 0 0% 100%;
+    --magma-glow: 351 94% 71%;
+
+    /* Warm amber for caution / restraint */
+    --amber: 32 95% 44%;                  /* amber-600 */
+    --amber-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96%;             /* slate-100 */
+    --secondary-foreground: 215 25% 27%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;      /* slate-500 */
+
+    /* Ocean Teal — neutral data accent */
+    --accent: 173 80% 36%;                /* teal-600 */
+    --accent-foreground: 0 0% 100%;
+
+    --border: 215 28% 90%;                /* slate-200 */
+    --input: 215 28% 90%;
+    --ring: 239 84% 60%;
+
+    /* Emotion tokens (light-friendly) */
+    --emo-humor: 32 95% 44%;
+    --emo-outrage: 351 83% 61%;
+    --emo-sadness: 217 91% 60%;
+    --emo-pride: 262 83% 58%;
+    --emo-curiosity: 173 80% 36%;
+
+    --gradient-radial: radial-gradient(ellipse at top, hsl(239 84% 60% / 0.06), transparent 60%);
+    --gradient-magma: linear-gradient(135deg, hsl(var(--magma)), hsl(var(--magma-glow)));
+    --gradient-cyan: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)));
+    --gradient-grid:
+      linear-gradient(hsl(215 28% 90% / 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(215 28% 90% / 0.5) 1px, transparent 1px);
+
+    /* Soft, colored shadows for cards */
+    --glow-cyan: 0 4px 20px -4px hsl(173 80% 36% / 0.18);
+    --glow-magma: 0 4px 20px -4px hsl(351 83% 61% / 0.22);
+    --glow-amber: 0 4px 20px -4px hsl(32 95% 44% / 0.18);
+    --shadow-elev: 0 4px 20px -4px hsl(239 84% 60% / 0.08);
+
+    --sidebar-background: 210 40% 99%;
+    --sidebar-foreground: 215 28% 17%;
+    --sidebar-primary: 239 84% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 215 28% 17%;
+    --sidebar-border: 215 28% 90%;
+    --sidebar-ring: 239 84% 60%;
+
+    /* Map (light) — soft soothing slate-200 land */
+    --map-land: 215 28% 87%;              /* slate-200 */
+    --map-stroke: 0 0% 100%;               /* white borders between regions */
+    --map-bg-from: 210 40% 99%;
+    --map-bg-to: 210 40% 96%;
   }
 }
 
