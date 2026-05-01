@@ -323,3 +323,14 @@
 .leaflet-control-attribution a {
   color: hsl(var(--primary)) !important;
 }
+
+/* Tactical radar pulse — slow scale + fade */
+@keyframes tactical-radar-pulse {
+  0%   { transform: translate(-50%, -50%) scale(0.15); opacity: 0.85; }
+  70%  { opacity: 0.15; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+.tunis-radar-root, .city-label-icon {
+  background: transparent !important;
+  border: none !important;
+}
