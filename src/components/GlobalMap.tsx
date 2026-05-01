@@ -1,100 +1,83 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useTheme } from "@/state/ThemeContext";
 
-export type SignalNode = {
-  id: string;
-  name: string;
-  hashtag?: string;
-  coords: [number, number]; // [lat, lng]
-  velocity: number; // 0-100
-  status: "High Tension" | "Consensus" | "Restraint";
-};
+/* ============================================================
+ * GlobalMap — Tunisia Tactical Radar
+ * Ultra-premium black & red intelligence map.
+ * Built on react-leaflet (Vite/React 18 — no Next.js SSR needed).
+ * ============================================================ */
 
-// Mock signal nodes spread across the globe
-const MOCK_NODES: SignalNode[] = [
-  { id: "tn", name: "Tunis",     hashtag: "#YasmineChallenge", coords: [36.8065, 10.1815], velocity: 87, status: "High Tension" },
-  { id: "ny", name: "New York",  hashtag: "#WallStBuzz",       coords: [40.7128, -74.006], velocity: 72, status: "Consensus" },
-  { id: "tk", name: "Tokyo",     hashtag: "#ShibuyaWave",      coords: [35.6762, 139.6503], velocity: 64, status: "Consensus" },
-  { id: "ld", name: "London",    hashtag: "#ThamesLive",       coords: [51.5074, -0.1278], velocity: 81, status: "High Tension" },
-  { id: "sp", name: "São Paulo", hashtag: "#PaulistaPulse",    coords: [-23.5505, -46.6333], velocity: 58, status: "Consensus" },
-  { id: "ct", name: "Cape Town", hashtag: "#TableMtnTrend",    coords: [-33.9249, 18.4241], velocity: 49, status: "Consensus" },
-  { id: "sg", name: "Singapore", hashtag: "#MarinaSignal",     coords: [1.3521, 103.8198],  velocity: 76, status: "Restraint" },
+type CityLabel = { name: string; coords: [number, number] };
+
+const CITY_LABELS: CityLabel[] = [
+  { name: "Sousse",    coords: [35.82, 10.63] },
+  { name: "Sfax",      coords: [34.74, 10.76] },
+  { name: "Kairouan",  coords: [35.67, 10.10] },
+  { name: "Bizerte",   coords: [37.27,  9.87] },
+  { name: "Nabeul",    coords: [36.45, 10.73] },
+  { name: "Béja",      coords: [36.72,  9.18] },
+  { name: "Gafsa",     coords: [34.42,  8.78] },
+  { name: "Al-Kef",    coords: [36.18,  8.70] },
+  { name: "Gabes",     coords: [33.88, 10.09] },
+  { name: "NALUT",     coords: [31.86, 10.98] },
 ];
 
-function nodeColorClass(status: SignalNode["status"], theme: "light" | "dark") {
-  if (status === "High Tension") return "bg-rose-500";
-  if (status === "Restraint") return "bg-amber-500";
-  return theme === "dark" ? "bg-teal-400" : "bg-blue-500";
-}
+const TUNIS: [number, number] = [36.8065, 10.1815];
 
-function nodeGlow(status: SignalNode["status"]) {
-  if (status === "High Tension") return "rgba(244,63,94,0.85)";   // rose-500
-  if (status === "Restraint")    return "rgba(245,158,11,0.85)";  // amber-500
-  return "rgba(20,184,166,0.85)";                                 // teal-500
-}
+/* ---------- Tunis Radar Node (3-layer pulse + floating tooltip) ---------- */
+const tunisRadarIcon = L.divIcon({
+  className: "tunis-radar-root",
+  iconSize: [0, 0],
+  iconAnchor: [0, 0],
+  html: `
+    <div class="relative" style="width:0;height:0;">
+      <!-- Layer 3: massive slow radar pulse -->
+      <span
+        class="bg-rose-500/10 w-32 h-32 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+        style="animation: tactical-radar-pulse 3.2s cubic-bezier(0,0,0.2,1) infinite;"
+      ></span>
+      <!-- Layer 3b: secondary slower pulse for depth -->
+      <span
+        class="bg-rose-500/10 w-32 h-32 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+        style="animation: tactical-radar-pulse 3.2s cubic-bezier(0,0,0.2,1) infinite; animation-delay: 1.2s;"
+      ></span>
+      <!-- Layer 2: static ring -->
+      <span class="border-4 border-rose-500/50 w-8 h-8 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></span>
+      <!-- Layer 1: solid core dot -->
+      <span
+        class="bg-rose-500 w-3 h-3 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+        style="box-shadow: 0 0 12px rgba(244,63,94,0.95), 0 0 24px rgba(244,63,94,0.6);"
+      ></span>
 
-function buildDivIcon(node: SignalNode, theme: "light" | "dark") {
-  const colorClass = nodeColorClass(node.status, theme);
-  const glow = nodeGlow(node.status);
-  // Velocity scales the ping size (1.0 -> 1.8)
-  const scale = 1 + (node.velocity / 100) * 0.8;
-
-  const html = `
-    <div class="signal-node-root" style="position:relative;width:0;height:0;">
-      <span class="signal-ping ${colorClass}" style="
-        position:absolute; left:-14px; top:-14px;
-        width:28px; height:28px; border-radius:9999px;
-        opacity:0.55;
-        transform:scale(${scale});
-        animation: leaflet-ping 1.8s cubic-bezier(0,0,0.2,1) infinite;
-      "></span>
-      <span class="signal-ping-2 ${colorClass}" style="
-        position:absolute; left:-10px; top:-10px;
-        width:20px; height:20px; border-radius:9999px;
-        opacity:0.4;
-        animation: leaflet-ping 2.6s cubic-bezier(0,0,0.2,1) infinite;
-        animation-delay: 0.5s;
-      "></span>
-      <span class="signal-halo" style="
-        position:absolute; left:-9px; top:-9px;
-        width:18px; height:18px; border-radius:9999px;
-        background:${glow};
-        filter:blur(6px); opacity:0.55;
-      "></span>
-      <span class="signal-core ${colorClass}" style="
-        position:absolute; left:-5px; top:-5px;
-        width:10px; height:10px; border-radius:9999px;
-        border:2px solid ${theme === "dark" ? "#020617" : "#FFFFFF"};
-        box-shadow: 0 0 0 2px ${theme === "dark" ? "#020617" : "#FFFFFF"}, 0 0 14px ${glow}, 0 0 28px ${glow};
-      "></span>
-      <span class="signal-label" style="
-        position:absolute; left:10px; top:-22px;
-        white-space:nowrap;
-        font-family: 'JetBrains Mono', ui-monospace, monospace;
-        font-size:10px; font-weight:600;
-        padding:3px 7px; border-radius:6px;
-        color: ${theme === "dark" ? "#F8FAFC" : "#1E293B"};
-        background: ${theme === "dark" ? "rgba(2,6,23,0.85)" : "rgba(255,255,255,0.92)"};
-        border: 1px solid ${theme === "dark" ? "rgba(255,255,255,0.12)" : "rgba(15,23,42,0.08)"};
-        backdrop-filter: blur(8px);
-        box-shadow: 0 4px 12px -4px rgba(15,23,42,0.25);
-        pointer-events:none;
-      ">${node.name} <span style="opacity:0.6;font-weight:400">· v${node.velocity}%</span></span>
+      <!-- Floating tooltip -->
+      <div
+        class="absolute top-[-30px] left-[30px] z-50 flex items-center gap-2 bg-[#0a0f1c] rounded-lg border border-blue-900/50 px-3 py-1.5"
+        style="box-shadow: 0 0 15px rgba(30,58,138,0.3); white-space:nowrap;"
+      >
+        <span class="h-1.5 w-1.5 rounded-full bg-rose-500" style="box-shadow:0 0 6px rgba(244,63,94,0.9);"></span>
+        <span class="text-[#e2e8f0] font-mono text-sm font-bold tracking-wide">Tunis • v8...</span>
+      </div>
     </div>
-  `;
+  `,
+});
 
+/* ---------- Faint static city/region labels ---------- */
+function makeCityLabelIcon(name: string) {
   return L.divIcon({
-    html,
-    className: "signal-node-icon",
+    className: "city-label-icon",
     iconSize: [0, 0],
     iconAnchor: [0, 0],
+    html: `
+      <div class="absolute -translate-x-1/2 -translate-y-1/2 text-[#555555] text-[10px] font-bold tracking-widest uppercase select-none pointer-events-none" style="white-space:nowrap;">
+        ${name}
+      </div>
+    `,
   });
 }
 
-// Internal: smooth resize handling
+/* ---------- Map sizing fix ---------- */
 function MapResize() {
   const map = useMap();
   useEffect(() => {
@@ -109,77 +92,56 @@ function MapResize() {
   return null;
 }
 
-export function GlobalMap({ nodes = MOCK_NODES }: { nodes?: SignalNode[] }) {
-  const { theme } = useTheme();
-
-  const tileUrl = theme === "dark"
-    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
-
-  const attribution =
-    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
-
-  // Rebuild icons whenever theme or nodes change
-  const markerData = useMemo(
-    () => nodes.map(n => ({ node: n, icon: buildDivIcon(n, theme) })),
-    [nodes, theme]
-  );
-
-  // Force tile layer remount on theme switch so old tiles don't linger
-  const tileKey = theme;
-
+export function GlobalMap() {
   return (
-    <div className="relative w-full h-full rounded-2xl overflow-hidden border border-border glass">
+    <div className="relative w-full h-full rounded-2xl overflow-hidden border border-rose-900/20 bg-[#111111]"
+         style={{ boxShadow: "0 0 60px -20px rgba(244,63,94,0.25), inset 0 0 80px rgba(0,0,0,0.6)" }}>
       {/* HUD overlay */}
-      <div className="absolute top-4 left-4 z-[500] font-mono text-[10px] tracking-[0.3em] text-muted-foreground pointer-events-none">
-        GLOBAL SIGNAL MAP · LIVE
+      <div className="absolute top-4 left-4 z-[500] font-mono text-[10px] tracking-[0.3em] text-rose-500/70 pointer-events-none">
+        TUNISIA · TACTICAL RADAR · LIVE
       </div>
-      <div className="absolute top-4 right-4 z-[500] font-mono text-[10px] text-muted-foreground flex items-center gap-2 pointer-events-none">
-        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-        SCANNING · {nodes.length} NODES
+      <div className="absolute top-4 right-4 z-[500] font-mono text-[10px] text-rose-500/70 flex items-center gap-2 pointer-events-none">
+        <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
+        SCANNING
       </div>
 
-      {/* Legend */}
-      <div className="absolute bottom-4 left-4 z-[500] glass rounded-lg p-2.5 space-y-1.5 font-mono text-[9px] pointer-events-none">
-        <div className="text-muted-foreground tracking-[0.2em] mb-1">SIGNAL STATUS</div>
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-rose-500" style={{ boxShadow: "0 0 8px rgba(244,63,94,0.8)" }} />
-          <span className="text-foreground/80">High Tension</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-amber-500" style={{ boxShadow: "0 0 8px rgba(245,158,11,0.8)" }} />
-          <span className="text-foreground/80">Restraint</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className={`h-2 w-2 rounded-full ${theme === "dark" ? "bg-teal-400" : "bg-blue-500"}`}
-                style={{ boxShadow: "0 0 8px rgba(20,184,166,0.8)" }} />
-          <span className="text-foreground/80">Consensus</span>
-        </div>
+      {/* Crosshairs */}
+      <div className="absolute inset-0 z-[400] pointer-events-none">
+        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-rose-500/5" />
+        <div className="absolute top-1/2 left-0 right-0 h-px bg-rose-500/5" />
       </div>
+
+      {/* Vignette */}
+      <div className="absolute inset-0 z-[450] pointer-events-none"
+           style={{ background: "radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.7) 100%)" }} />
 
       <MapContainer
-        center={[20, 0]}
-        zoom={2}
-        minZoom={2}
-        maxZoom={8}
+        center={[34.5, 9.5]}
+        zoom={7}
+        minZoom={6}
+        maxZoom={10}
         zoomControl={false}
-        worldCopyJump
-        scrollWheelZoom
-        attributionControl
-        style={{ width: "100%", height: "100%", background: "transparent" }}
+        attributionControl={false}
+        scrollWheelZoom={true}
+        dragging={true}
+        doubleClickZoom={false}
+        style={{ width: "100%", height: "100%", background: "#111111" }}
       >
         <TileLayer
-          key={tileKey}
-          url={tileUrl}
-          attribution={attribution}
+          url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
           subdomains={["a", "b", "c", "d"]}
           maxZoom={20}
           detectRetina
         />
         <MapResize />
-        {markerData.map(({ node, icon }) => (
-          <Marker key={node.id} position={node.coords} icon={icon} />
+
+        {/* Faint city labels */}
+        {CITY_LABELS.map((c) => (
+          <Marker key={c.name} position={c.coords} icon={makeCityLabelIcon(c.name)} interactive={false} />
         ))}
+
+        {/* Tunis radar node — rendered last so it sits on top */}
+        <Marker position={TUNIS} icon={tunisRadarIcon} />
       </MapContainer>
     </div>
   );
