@@ -292,3 +292,34 @@
   0%, 100% { transform: translate(-50%, -100%) translateY(0); }
   50% { transform: translate(-50%, -100%) translateY(-4px); }
 }
+
+/* ============= Leaflet integration ============= */
+@keyframes leaflet-ping {
+  0%   { transform: scale(0.6); opacity: 0.7; }
+  75%, 100% { transform: scale(2.4); opacity: 0; }
+}
+
+.leaflet-container {
+  background: hsl(var(--map-bg-to)) !important;
+  font-family: 'Inter', system-ui, sans-serif;
+  outline: none;
+}
+.leaflet-container .leaflet-tile-pane {
+  filter: saturate(1.05) contrast(1.02);
+}
+.signal-node-icon {
+  background: transparent !important;
+  border: none !important;
+}
+.leaflet-control-attribution {
+  background: hsl(var(--background) / 0.65) !important;
+  color: hsl(var(--muted-foreground)) !important;
+  backdrop-filter: blur(8px);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9px !important;
+  border-radius: 6px 0 0 0;
+  padding: 2px 8px !important;
+}
+.leaflet-control-attribution a {
+  color: hsl(var(--primary)) !important;
+}
