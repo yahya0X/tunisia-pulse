@@ -87,8 +87,8 @@
     --sidebar-ring: 187 92% 53%;
 
     /* Map (dark) */
-    --map-land: 222 35% 12%;
-    --map-stroke: 187 92% 53%;
+    --map-land: 217 33% 17%;               /* slate-800 */
+    --map-stroke: 187 92% 53% / 0.4;
     --map-bg-from: 222 47% 5%;
     --map-bg-to: 222 47% 3%;
   }
